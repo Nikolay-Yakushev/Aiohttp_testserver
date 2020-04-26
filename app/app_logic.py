@@ -34,13 +34,13 @@ async def _upload(request):
 # не получается записывать асихронно async with aiofiles.open
 async def write_file(filename, field):
     file_size = 0
-    with open(os.path.join(upload_folder, filename), 'wb') as infile:
+    async with aiofiles.open(os.path.join(upload_folder, filename), 'wb') as infile:
         while True:
             chunk = await field.read_chunk()  # 8192 bytes by default.
             if not chunk:
                 break
             file_size += len(chunk)
-            infile.write(chunk)
+            await infile.write(chunk)
 
     return web.Response(text=f'{filename} sized of {file_size} successfully stored')
 
