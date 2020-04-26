@@ -3,18 +3,15 @@ import sys
 
 import aiofiles
 from aiohttp import web
-from werkzeug.utils import secure_filename  # функция блокирующая??
+from werkzeug.utils import secure_filename
 
 from . import upload_folder
 
 
-# upload_folder = '/home/driver220v/Documents/Dow/'
-# yaml.load(str(pathlib.Path('.') / 'config.yaml'), Loader=yaml.Loader)
-
 
 async def _size(request):
     file_searched = request.rel_url.query['file']
-    for root, dirs, files in os.walk(upload_folder):  # app.config[upload folder]
+    for root, dirs, files in os.walk(upload_folder):
         if files and file_searched in file_searched:
             file_size = {'size': sys.getsizeof(file_searched)}
             response = web.json_response(file_size)
@@ -31,7 +28,6 @@ async def _upload(request):
         return response
 
 
-# не получается записывать асихронно async with aiofiles.open
 async def write_file(filename, field):
     file_size = 0
     async with aiofiles.open(os.path.join(upload_folder, filename), 'wb') as infile:
