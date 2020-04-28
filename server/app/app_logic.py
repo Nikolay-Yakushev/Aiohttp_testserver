@@ -8,14 +8,14 @@ from werkzeug.utils import secure_filename
 from . import upload_folder
 
 
-
 async def _size(request):
     file_searched = request.rel_url.query['file']
-    for root, dirs, files in os.walk(upload_folder):
-        if files and file_searched in file_searched:
-            file_size = {'size': sys.getsizeof(file_searched)}
-            response = web.json_response(file_size)
-            return response
+    try:
+        path_to_file = os.path.join(upload_folder, file_searched)
+        os.path.getsize(path_to_file)
+        web.Response(text=f'{os.path.getsize(path_to_file)}')
+    except Exception as e:
+        print(e)
 
 
 async def _upload(request):
@@ -35,10 +35,10 @@ async def write_file(filename, field):
             chunk = await field.read_chunk()  # 8192 bytes by default.
             if not chunk:
                 break
-            file_size += len(chunk)
+            # file_size += len(chunk)
             await infile.write(chunk)
 
-    return web.Response(text=f'{filename} sized of {file_size} successfully stored')
+    return web.Response(text=f'{filename}has been successfully stored\n')
 
 
 async def _download(request):
