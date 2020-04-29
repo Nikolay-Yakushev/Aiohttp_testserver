@@ -1,5 +1,4 @@
 import os
-import sys
 
 import aiofiles
 from aiohttp import web
@@ -11,9 +10,17 @@ from . import upload_folder
 async def _size(request):
     file_searched = request.rel_url.query['file']
     try:
+
         path_to_file = os.path.join(upload_folder, file_searched)
-        os.path.getsize(path_to_file)
-        web.Response(text=f'{os.path.getsize(path_to_file)}')
+        file_size = 0
+        async with aiofiles.open(path_to_file, 'rb') as outfile:
+            while True:
+                chunk = await outfile.read(8192)
+                if not chunk:
+                    break
+                file_size += len(chunk)
+        return web.Response(text=f'{file_searched} size is {file_size} bytes\n\n')
+
     except Exception as e:
         print(e)
 
@@ -29,16 +36,14 @@ async def _upload(request):
 
 
 async def write_file(filename, field):
-    file_size = 0
     async with aiofiles.open(os.path.join(upload_folder, filename), 'wb') as infile:
         while True:
-            chunk = await field.read_chunk()  # 8192 bytes by default.
+            chunk = await field.read_chunk(8192)
             if not chunk:
                 break
-            # file_size += len(chunk)
             await infile.write(chunk)
 
-    return web.Response(text=f'{filename}has been successfully stored\n')
+    return web.Response(text=f'{filename} has been successfully stored\n\n')
 
 
 async def _download(request):
@@ -48,7 +53,7 @@ async def _download(request):
             if file_searched in files:
                 async with aiofiles.open(os.path.join(upload_folder, file_searched), mode='r') as outfile:
                     content = await outfile.read()
-                return web.Response(text=f'{content}')
+                return web.Response(text=f'{content}\n\n')
 
 
     except FileNotFoundError:
