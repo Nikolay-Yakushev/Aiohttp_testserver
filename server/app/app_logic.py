@@ -49,12 +49,10 @@ async def write_file(filename, field):
 async def _download(request):
     file_searched = request.rel_url.query['file']
     try:
-        for root, dirs, files in os.walk(upload_folder):
-            if file_searched in files:
-                async with aiofiles.open(os.path.join(upload_folder, file_searched), mode='r') as outfile:
-                    content = await outfile.read()
-                return web.Response(text=f'{content}\n\n')
+        async with aiofiles.open(os.path.join(upload_folder, file_searched), mode='r') as outfile:
+            content = await outfile.read()
+        return web.Response(text=f'{content}\n\n')
 
 
-    except FileNotFoundError:
+    except Exception as e:
         web.Response(text='file not found')
