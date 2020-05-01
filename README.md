@@ -3,7 +3,7 @@ Aiohttp based server to download and upload files. Getting size of downloaded fi
 
 
 1) pip install -r requirements.txt
-2) python3 entry.py --host=0.0.0.0 --port=8080
+2) python3 entry.py --host=0.0.0.0 --port=8080 --config=/home/server/config.yaml
     
     Or use Dockerfile
 
