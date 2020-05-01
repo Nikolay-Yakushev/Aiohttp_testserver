@@ -17,11 +17,13 @@ async def upload(request):
 
 @routes.get('/download')
 async def download(request):
-    data = await _download(request)
-    return data
+    if request.method == 'GET':
+        data = await _download(request)
+        return data
 
 
 @routes.get('/size')
 async def size(request):
-    data = await _size(request)
-    return data
+    if request.method == 'GET':
+        data = await _size(request)
+        return data
