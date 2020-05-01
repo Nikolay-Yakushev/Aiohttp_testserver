@@ -8,6 +8,9 @@ async def upload(request):
     if request.method == 'POST':
         response = await _upload(request)
         return response
+    else:
+        web.json_response({'response': 'wrong requests method'})
+
 
 
 @routes.get('/hello')
@@ -20,6 +23,8 @@ async def download(request):
     if request.method == 'GET':
         data = await _download(request)
         return data
+    else:
+        web.json_response({'response': 'wrong requests method'})
 
 
 @routes.get('/size')
@@ -27,3 +32,5 @@ async def size(request):
     if request.method == 'GET':
         data = await _size(request)
         return data
+    else:
+        web.json_response({'response': 'wrong requests method'})
