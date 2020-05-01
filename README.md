@@ -14,8 +14,8 @@ Aiohttp based server to download and upload files. Getting size of downloaded fi
 - move to project directory and run server
         
         
-        cd conserv/
-        python3 entry.py --host=0.0.0.0 --port=8080
+        cd server/
+        python3 entry.py --host=0.0.0.0 --port=8080 --config=/home/server/config.yaml
         
         
         ======== Running on http://0.0.0.0:8080 ========
