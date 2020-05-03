@@ -3,23 +3,26 @@ import os
 import aiofiles
 from aiohttp import web
 from werkzeug.utils import secure_filename
-from . import e_handler
+
+from . import client_err_handler, server_err_handler
 
 
 async def _size(request):
     upload_folder = request.app['config'].get('upload_folder')
-    file_searched = request.rel_url.query['file']
+    query = request.rel_url.query
 
-    if file_searched:
+    if query and 'file' in query:
+
+        file_searched = query['file']
         path_to_file = os.path.join(upload_folder, file_searched)
 
         if not path_to_file:
-            return await e_handler.internal_error()
+            return await server_err_handler.internal_error()
 
         file_size = os.path.getsize(path_to_file)
-        return web.json_response({'info': {'filename': f' {file_searched}', 'size(bytes)': f'{file_size}'}})
+        return web.json_response({'info': {'filename': f' {file_searched}', 'size': f'{file_size} bytes'}})
     else:
-        await e_handler.bad_request()
+        return await client_err_handler.bad_request(request.rel_url.query)
 
 
 async def _upload(request):
@@ -27,42 +30,41 @@ async def _upload(request):
     reader = await request.multipart()
 
     if not reader:
-        return await e_handler.bad_request()
+        return await client_err_handler.bad_request(request.multipart)
 
-    field = await reader.next()
-    file_searched = field.name
+    while True:
+        field = await reader.next()
+        if field is None:
+            return await client_err_handler.bad_request(reader)
+        if field.name == 'file':
+            break
 
-    if file_searched == 'file':
-        filename = secure_filename(field.filename)
-        response = await write_file(upload_folder, filename, field)
+    filename = secure_filename(field.filename)
+    response = await save(upload_folder, filename, field)
 
-        if response is None:
-            return await e_handler.internal_error()
-
-        return response
+    return response
 
 
-async def write_file(upload_folder, filename, field):
-    try:
-        async with aiofiles.open(os.path.join(upload_folder, filename), 'wb') as infile:
-            while True:
-                chunk = await field.read_chunk(8192)
-                if not chunk:
-                    break
-                await infile.write(chunk)
-        return web.json_response({'info': {'filename': f'{filename}', 'status': 'uploaded'}})
-    except:
-        return None
+async def save(upload_folder, filename, field):
+    async with aiofiles.open(os.path.join(upload_folder, filename), 'wb') as infile:
+        while True:
+            chunk = await field.read_chunk(8192)
+            if not chunk:
+                break
+            await infile.write(chunk)
+    return web.json_response({'info': {'filename': f'{filename}', 'status': 'uploaded'}})
 
 
 async def _download(request):
     upload_folder = request.app['config'].get('upload_folder')
-    file_searched = request.rel_url.query['file']
+    query = request.rel_url.query
 
-    if file_searched:
+    if query and 'file' in query:
+        file_searched = query['file']
+
         async with aiofiles.open(os.path.join(upload_folder, file_searched), mode='r') as outfile:
             content = await outfile.read()
         return web.Response(text=f'{content}\n\n')
 
     else:
-        return await e_handler.bad_request()
+        return await client_err_handler.bad_request(request.rel_url.query)

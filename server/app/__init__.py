@@ -1,6 +1,7 @@
 from aiohttp import web
-from .errors_handler import ErrorsHandler
+from .errors_handler import ClientErrorHandler, ServerErrorsHandler
 
 routes = web.RouteTableDef()
-e_handler = ErrorsHandler
+client_err_handler = ClientErrorHandler
+server_err_handler = ServerErrorsHandler
 

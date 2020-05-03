@@ -7,7 +7,6 @@ def create_app(path: str):
     app = web.Application()
 
     from .app_routes import routes
-    # from . import upload_folder
     with open(path, 'r') as conf_file:
         config = yaml.safe_load(conf_file)
         app['config'] = config
