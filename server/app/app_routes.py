@@ -15,7 +15,7 @@ async def upload(request):
 
 @routes.get('/hello')
 async def upload(request):
-    return web.Response(text='hello world')
+    return web.Response(text='Greetings! This is a test aiohttp server aimed at processing files\n\n')
 
 
 @routes.get('/download')

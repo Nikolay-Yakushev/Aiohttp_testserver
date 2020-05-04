@@ -4,7 +4,7 @@ import aiofiles
 from aiohttp import web
 from werkzeug.utils import secure_filename
 
-from . import client_err_handler, server_err_handler
+from . import client_err_handler, server_err_handler, custom_err_handler
 
 
 async def _size(request):
@@ -19,7 +19,13 @@ async def _size(request):
         if not path_to_file:
             return await server_err_handler.internal_error()
 
-        file_size = os.path.getsize(path_to_file)
+        try:
+            file_size = os.path.getsize(path_to_file)
+        except custom_err_handler.file_not_found(path_to_file):
+
+            response = await custom_err_handler.file_not_found(path_to_file)
+            return response
+
         return web.json_response({'info': {'filename': f' {file_searched}', 'size': f'{file_size} bytes'}})
     else:
         return await client_err_handler.bad_request(request.rel_url.query)
@@ -49,9 +55,11 @@ async def save(upload_folder, filename, field):
     async with aiofiles.open(os.path.join(upload_folder, filename), 'wb') as infile:
         while True:
             chunk = await field.read_chunk(8192)
+
             if not chunk:
                 break
             await infile.write(chunk)
+
     return web.json_response({'info': {'filename': f'{filename}', 'status': 'uploaded'}})
 
 

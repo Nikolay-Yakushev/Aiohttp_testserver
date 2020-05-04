@@ -35,3 +35,11 @@ class ServerErrorsHandler(web.HTTPException):
     @staticmethod
     async def internal_error():  # 500
         return web.HTTPInternalServerError()
+
+
+class CustomErrorsHandler(Exception):
+
+    @staticmethod
+    async def file_not_found(req_text):
+        await logger.warning(f'Cant find {req_text}; {FileNotFoundError}')
+        return web.HTTPBadRequest(reason=req_text)
