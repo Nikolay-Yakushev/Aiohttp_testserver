@@ -4,7 +4,8 @@ import aiofiles
 from aiohttp import web
 from werkzeug.utils import secure_filename
 
-from . import client_err_handler, server_err_handler, custom_err_handler
+from errors_handler import ServerErrorsHandler, \
+    ClientErrorHandler, CustomErrorsHandler
 
 
 async def _size(request):
@@ -17,18 +18,18 @@ async def _size(request):
         path_to_file = os.path.join(upload_folder, file_searched)
 
         if not path_to_file:
-            return await server_err_handler.internal_error()
+            return await ServerErrorsHandler.internal_error()
 
         try:
             file_size = os.path.getsize(path_to_file)
-        except custom_err_handler.file_not_found(path_to_file):
+        except CustomErrorsHandler.file_not_found(path_to_file):
 
-            response = await custom_err_handler.file_not_found(path_to_file)
+            response = await CustomErrorsHandler.file_not_found(path_to_file)
             return response
 
         return web.json_response({'info': {'filename': f' {file_searched}', 'size': f'{file_size} bytes'}})
     else:
-        return await client_err_handler.bad_request(request.rel_url.query)
+        return await ClientErrorHandler.bad_request(request.rel_url.query)
 
 
 async def _upload(request):
@@ -36,12 +37,12 @@ async def _upload(request):
     reader = await request.multipart()
 
     if not reader:
-        return await client_err_handler.bad_request(request.multipart)
+        return await ClientErrorHandler.bad_request(request.multipart)
 
     while True:
         field = await reader.next()
         if field is None:
-            return await client_err_handler.bad_request(reader)
+            return await ClientErrorHandler.bad_request(reader)
         if field.name == 'file':
             break
 
@@ -75,4 +76,4 @@ async def _download(request):
         return web.Response(text=f'{content}\n\n')
 
     else:
-        return await client_err_handler.bad_request(request.rel_url.query)
+        return await ClientErrorHandler.bad_request(request.rel_url.query)
